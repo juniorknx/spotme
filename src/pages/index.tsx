@@ -22,7 +22,7 @@ export default function Home() {
       </Head>
       <Container className="lg:size-dvh flex items-center justify-center">
         <div className="flex justify-center lg:size-dvh align-center items-center flex-col">
-          <div className="flex justify-center items-center flex-col gap-3 mb-4 lg:gap-10">
+          <div className="flex justify-center items-center flex-col gap-3 mb-4 lg:gap-4">
             <Image
               src={logo}
               alt="SpotMe"
@@ -32,7 +32,7 @@ export default function Home() {
             <Image
               src={people}
               alt="SpotMe"
-              className="w-[200px] h-[200px] lg:w-90 lg:h-90"
+              className="w-[200px] h-[200px] lg:w-80 lg:h-80"
             />
           </div>
 
