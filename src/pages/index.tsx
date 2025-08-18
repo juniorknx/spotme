@@ -55,7 +55,7 @@ export default function Home() {
                     relative inline-flex items-center justify-center gap-2 font-semibold text-[15px]
                     px-[100px] py-[10px] max-w-[385px] rounded-[40px] border-0 cursor-pointer
                     bg-[var(--pink-strong)] text-[var(--white)]
-                    transition-colors transition-opacity transition-transform duration-200 ease-in-out
+                    duration-200 ease-in-out
                     hover:bg-[var(--pink-strong-hover)]
                     disabled:opacity-70 disabled:cursor-not-allowed
                   "
