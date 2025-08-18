@@ -2,7 +2,7 @@ import Container from "@/components/Container";
 import Head from "next/head";
 import Image from "next/image";
 import logo from '../../public/spotme_logo.png'
-import people from '../../public/assets/images/spotme-group.png'
+import people from '../../public/assets/images/initial-group.png'
 import { useState } from "react";
 import Link from "next/link";
 
@@ -20,39 +20,35 @@ export default function Home() {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Container className="size-dvh flex items-center">
+      <Container className="lg:size-dvh flex items-center justify-center">
         <div className="flex justify-center lg:size-dvh align-center items-center flex-col">
-          <div className="flex justify-center items-center flex-col gap-7 mb-4 lg:gap-10">
+          <div className="flex justify-center items-center flex-col gap-3 mb-4 lg:gap-10">
             <Image
               src={logo}
               alt="SpotMe"
-              className="w-[180px] h-[180px] lg:w-50 lg:h-50"
+              className="w-[170px] h-[170px] lg:w-50 lg:h-50"
             />
 
             <Image
               src={people}
               alt="SpotMe"
-              className="w-[300px] h-[300px] lg:w-90 lg:h-90"
+              className="w-[200px] h-[200px] lg:w-90 lg:h-90"
             />
           </div>
 
           <div className="">
-            <div className="">
-              <h2></h2>
-            </div>
-
             <div className="flex justify-center flex-col items-center">
-              <h2 className="text-[var(--black-medium)] lg:text-4xl text-3xl text-center leading-1.2 font-semibold">Encontre conexões onde<br></br>sua história começa</h2>
-              <p className="text-center pt-3 text-[15px] lg:w-[540px] lg:mt-1.5">Descubra pessoas incríveis perto de você e transforme encontros em momentos inesquecíveis.</p>
+              <h2 className="text-[var(--black-medium)] lg:text-4xl text-2xl text-center leading-1.2 font-semibold">Encontre conexões onde<br></br>sua história começa</h2>
+              <p className="text-center pt-2 text-[15px] lg:w-[540px] lg:mt-1.5">Descubra pessoas incríveis perto de você e transforme encontros em momentos inesquecíveis.</p>
             </div>
 
             <div className="flex justify-center items-center flex-col">
-              <div className="mt-8">
+              <div className="mt-8 flex flex-col gap-3 items-center">
                 <Link
-                  href="/"
+                  href="/login"
                   prefetch={true}
                   className="
-                    relative inline-flex items-center justify-center gap-2 font-semibold text-[15px]
+                    relative inline-flex items-center justify-center gap-1 font-semibold text-[15px]
                     px-[100px] py-[10px] max-w-[385px] rounded-[40px] border-0 cursor-pointer
                     bg-[var(--pink-strong)] text-[var(--white)]
                     duration-200 ease-in-out
@@ -62,6 +58,8 @@ export default function Home() {
                 >
                   Começar
                 </Link>
+
+                <span className="text-[13px]">Não tem uma conta? <Link className="underline font-medium" prefetch={true} href={'/cadastre-se'}>Cadastre-se</Link></span>
               </div>
             </div>
           </div>

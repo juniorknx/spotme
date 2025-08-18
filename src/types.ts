@@ -14,3 +14,7 @@ export interface ContainerProps {
     children: React.ReactNode
     className?: string
 }
+
+export interface BackHeaderProps {
+    title: string;
+}
