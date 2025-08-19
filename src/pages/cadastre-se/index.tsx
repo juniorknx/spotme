@@ -8,10 +8,18 @@ import { GoHeart } from "react-icons/go";
 import { IoPeopleOutline } from "react-icons/io5";
 import { Input } from '@/components/ui/input'
 import { formatDate } from '@/helpers/formatDate'
+import { Textarea } from "@/components/ui/textarea"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 /* 
 
-INPUTS
- nome e sobrenome
+PASSO 1 
+ nome e sobrenome 
  whatsapp
  idade (date)
  genero
@@ -21,7 +29,7 @@ INPUTS
  PASSO 2 
  upload de fotos max 3 imagens
 
-STEP 3
+PASSO 3 finaliza cadastro
 email
 senha
 confirma senha
@@ -69,7 +77,7 @@ export default function Cadastre() {
                                     <Input
                                         type="text"
                                         placeholder="Nome e Sobrenome"
-                                        className="h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                                        className="text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
                                     />
                                 </div>
 
@@ -77,7 +85,7 @@ export default function Cadastre() {
                                     <Input
                                         type="text"
                                         placeholder="Telefone/WhatsApp"
-                                        className="h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                                        className="text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
                                     />
                                 </div>
 
@@ -88,27 +96,61 @@ export default function Cadastre() {
                                         maxLength={10}
                                         value={birthdate}
                                         onChange={(e) => setBirthdate(formatDate(e.target.value))}
-                                        className="h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                                        className="text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
                                     />
                                 </div>
 
-                                <div className="m-2 flex gap-5 mt-4">
-                                    {["Masculino", "Feminino", "Outro"].map((label) => (
-                                        <button
-                                            key={label}
-                                            type="button"
-                                            onClick={() => setSelected(label)}
-                                            className={`
-                                                px-3 py-1 rounded-lg border transition-colors duration-200 text-sm
-                                                border-[var(--pink-strong)]
-                                                ${selected === label
-                                                    ? "bg-[var(--pink-strong)] text-white"
-                                                    : "bg-transparent text-black hover:bg-[var(--pink-strong)]/10"}
-                                                `}
+                                <div className="m-2">
+                                    <Select>
+                                        <SelectTrigger
+                                            className="
+                                                w-full h-[50px] border-[var(--border-input)]
+                                                px-4 text-sm text-gray-700 bg-white
+                                                transition-colors duration-200 ease-in-out
+                                                focus:outline-none
+                                                focus:border-[var(--pink-strong)]
+                                                focus:ring-1 focus:ring-[var(--pink-strong)] focus:ring-offset-0.2
+                                                data-[state=open]:border-[var(--pink-strong)]
+                                                data-[state=open]:ring-1 data-[state=open]:ring-[var(--pink-strong)] data-[state=open]:ring-offset-0.2
+                                            "
                                         >
-                                            {label}
-                                        </button>
-                                    ))}
+                                            <SelectValue placeholder="Gênero" />
+                                        </SelectTrigger>
+
+                                        <SelectContent className="z-50 rounded-lg border border-[var(--border-input)] bg-white shadow-md">
+                                            <SelectItem value="male" className="text-sm">Masculino</SelectItem>
+                                            <SelectItem value="female" className="text-sm">Feminino</SelectItem>
+                                            <SelectItem value="other" className="text-sm">Outro</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className='m-2'>
+                                    <Textarea
+                                        placeholder="Sobre você"
+                                        className="text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out" />
+                                </div>
+
+                                <div className="m-2 flex gap-2 mt-4 flex-col">
+                                    <h2 className='text-[14.5px] text-gray-700'>Interesses</h2>
+                                    <div className='flex flex-row gap-4 flex-wrap'>
+                                        {["Relacionamento Sério 💍", "Novas Amizades 🤝", "Encontros Casuais 😏", "Só Observando 👀"].map((label) => (
+                                            <button
+                                                key={label}
+                                                type="button"
+                                                onClick={() => setSelected(label)}
+                                                className={`
+                                                py-2 px-3 rounded-3xl border transition-colors duration-200 text-sm 
+                                                border-[var(--gray)]
+                                                ${selected === label
+                                                        ? "bg-[#bdbdbd] text-[#000]"
+                                                        : "bg-transparent text-black hover:bg-[var(--pink-strong)]/10"}
+                                                `}
+                                            >
+                                                {label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
 
                                 <div className='flex justify-center mt-3'>
