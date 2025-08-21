@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/select"
 import toast from "react-hot-toast"
 import axios from 'axios'
-import { toBase64 } from '@/helpers/formatImage' // mantido
 
 export default function Cadastre() {
     const [step, setStep] = useState(1)
@@ -38,7 +37,7 @@ export default function Cadastre() {
         confirmPassword: ''
     })
 
-    // === Somente cria preview/local, sem subir nada aqui ===
+    // Somente cria um preview local
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newFiles = Array.from(e.target.files || [])
         if (photos.length + newFiles.length > 3) {
@@ -55,7 +54,7 @@ export default function Cadastre() {
 
     const handleRemovePhoto = (index: number) => {
         setPhotos(prev => prev.filter((_, i) => i !== index))
-        setPhotoURLs(prev => prev.filter((_, i) => i !== index)) // caso já tenha sido preenchido em algum fluxo
+        setPhotoURLs(prev => prev.filter((_, i) => i !== index)) 
     }
 
     // ==== Helpers chamados apenas no SUBMIT ====
@@ -118,7 +117,7 @@ export default function Cadastre() {
             setLoading(true)
             const toastId = toast.loading('Enviando fotos...')
 
-            // >>> SOMENTE AQUI as fotos são enviadas ao Cloudinary
+            // Aqui envia para o cloudinary
             const urls = await uploadAllSelectedPhotos(photos)
             setPhotoURLs(urls)
 
@@ -134,7 +133,7 @@ export default function Cadastre() {
                 gender,
                 interests: selected,
                 about,
-                photos: urls // apenas URLs
+                photos: urls 
             }
 
             const response = await axios.post('/api/register', payload)
