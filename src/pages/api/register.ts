@@ -1,3 +1,4 @@
+// pages/api/register.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { setDoc, doc, serverTimestamp } from "firebase/firestore";
@@ -10,7 +11,16 @@ const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME!;
 const API_KEY = process.env.CLOUDINARY_API_KEY!;
 const API_SECRET = process.env.CLOUDINARY_API_SECRET!;
 
-// ⬆️ Upload de imagem para o Cloudinary
+// Permite um body pequeno (já que agora só vêm textos/URLs)
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: "2mb",
+        },
+    },
+};
+
+// ⬆️ Upload de imagem para o Cloudinary (LEGADO – mantido)
 const uploadToCloudinary = async (base64: string) => {
     const timestamp = Math.floor(Date.now() / 1000);
     const signature = crypto
@@ -27,14 +37,10 @@ const uploadToCloudinary = async (base64: string) => {
     const response = await axios.post(
         `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
         formData,
-        {
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-        }
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    return response.data.secure_url;
+    return response.data.secure_url as string;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -75,12 +81,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        // ☁️ Upload de todas as imagens para o Cloudinary
-        const uploadedPhotos = await Promise.all(
-            photos.map(async (photo: { preview: string }) => {
-                return await uploadToCloudinary(photo.preview);
-            })
-        );
+        // --- SUPORTE A DOIS MODOS ---
+        let uploadedPhotos: string[] = [];
+
+        // NOVO: se vier string[], já são URLs do Cloudinary
+        if (typeof photos[0] === "string") {
+            uploadedPhotos = photos as string[];
+        } else {
+            // LEGADO: se vierem objetos { preview: base64 }, faz upload aqui
+            uploadedPhotos = await Promise.all(
+                (photos as Array<{ preview: string }>).map(async (photo) => {
+                    return await uploadToCloudinary(photo.preview);
+                })
+            );
+        }
 
         const mainPhoto = uploadedPhotos[0];
 

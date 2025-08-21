@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select"
 import toast from "react-hot-toast"
 import axios from 'axios'
-import { toBase64 } from '@/helpers/formatImage'
+import { toBase64 } from '@/helpers/formatImage' // mantido
 
 export default function Cadastre() {
     const [step, setStep] = useState(1)
@@ -28,6 +28,8 @@ export default function Cadastre() {
     const [about, setAbout] = useState("")
     const [gender, setGender] = useState("")
     const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([])
+    const [photoURLs, setPhotoURLs] = useState<string[]>([])
+
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -36,12 +38,14 @@ export default function Cadastre() {
         confirmPassword: ''
     })
 
+    // === Somente cria preview/local, sem subir nada aqui ===
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newFiles = Array.from(e.target.files || [])
         if (photos.length + newFiles.length > 3) {
             toast.error('Você só pode enviar até 3 fotos.')
             return
         }
+
         const filesWithPreview = newFiles.map(file => ({
             file,
             preview: URL.createObjectURL(file)
@@ -51,6 +55,50 @@ export default function Cadastre() {
 
     const handleRemovePhoto = (index: number) => {
         setPhotos(prev => prev.filter((_, i) => i !== index))
+        setPhotoURLs(prev => prev.filter((_, i) => i !== index)) // caso já tenha sido preenchido em algum fluxo
+    }
+
+    // ==== Helpers chamados apenas no SUBMIT ====
+    async function getSignature() {
+        const res = await fetch('/api/cloudinary-sign', { method: 'POST' })
+        if (!res.ok) throw new Error('Falha ao obter assinatura do Cloudinary')
+        return res.json() as Promise<{
+            timestamp: number
+            signature: string
+            cloudName: string
+            apiKey: string
+            uploadPreset?: string
+        }>
+    }
+
+    async function uploadImage(file: File): Promise<string> {
+        const { timestamp, signature, cloudName, apiKey, uploadPreset } = await getSignature()
+
+        const form = new FormData()
+        form.append('file', file)
+        form.append('api_key', apiKey)
+        form.append('timestamp', String(timestamp))
+        form.append('signature', signature)
+        if (uploadPreset) form.append('upload_preset', uploadPreset)
+
+        const upRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            method: 'POST',
+            body: form,
+        })
+        const data = await upRes.json()
+        if (!upRes.ok || !data?.secure_url) {
+            throw new Error(data?.error?.message || 'Falha no upload Cloudinary')
+        }
+        return data.secure_url as string
+    }
+
+    async function uploadAllSelectedPhotos(files: { file: File }[]): Promise<string[]> {
+        const urls: string[] = []
+        for (const item of files) {
+            const url = await uploadImage(item.file)
+            urls.push(url)
+        }
+        return urls
     }
 
     async function handleSubmit(e: React.FormEvent) {
@@ -68,9 +116,13 @@ export default function Cadastre() {
 
         try {
             setLoading(true)
-            const base64Photos = await Promise.all(
-                photos.map(({ file }) => toBase64(file))
-            )
+            const toastId = toast.loading('Enviando fotos...')
+
+            // >>> SOMENTE AQUI as fotos são enviadas ao Cloudinary
+            const urls = await uploadAllSelectedPhotos(photos)
+            setPhotoURLs(urls)
+
+            toast.success('Fotos enviadas!', { id: toastId })
 
             const payload = {
                 name: formData.name,
@@ -82,7 +134,7 @@ export default function Cadastre() {
                 gender,
                 interests: selected,
                 about,
-                photos: base64Photos.map(preview => ({ preview }))
+                photos: urls // apenas URLs
             }
 
             const response = await axios.post('/api/register', payload)
@@ -90,8 +142,9 @@ export default function Cadastre() {
             toast.success('Cadastro finalizado!!')
             setLoading(false)
         } catch (err: any) {
-            console.error('❌ Erro ao cadastrar:', err.response?.data || err.message)
-            alert(err.response?.data?.message || 'Erro ao cadastrar.')
+            console.error('❌ Erro ao cadastrar:', err?.response?.data || err?.message || err)
+            toast.error(err?.response?.data?.message || err?.message || 'Erro ao cadastrar.')
+            setLoading(false)
         }
     }
 
@@ -127,7 +180,7 @@ export default function Cadastre() {
                                     <>
                                         <div className='m-2'>
                                             <Input
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                                 type="text"
                                                 placeholder="Nome e Sobrenome"
                                                 value={formData.name}
@@ -135,33 +188,38 @@ export default function Cadastre() {
                                         </div>
                                         <div className='m-2'>
                                             <Input
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                                 type="text"
                                                 placeholder="Telefone/WhatsApp"
                                                 value={formData.phone}
                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
                                         </div>
                                         <div className='m-2'>
-                                            <Input className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                                            <Input
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                                 type="text"
                                                 placeholder="Data de Nascimento"
-                                                maxLength={10} value={birthdate}
+                                                maxLength={10}
+                                                value={birthdate}
                                                 onChange={(e) => setBirthdate(formatDate(e.target.value))} />
                                         </div>
                                         <div className="m-2">
                                             <Select onValueChange={(value) => setGender(value)} value={gender}>
-                                                <SelectTrigger className="w-full border-[var(--border-input)] px-4 text-sm text-gray-700 bg-white transition-colors duration-200 ease-in-out focus:outline-none focus:border-[var(--pink-strong)] focus:ring-1 focus:ring-[var(--pink-strong)] focus:ring-offset-0.2 data-[state=open]:border-[var(--pink-strong)] data-[state=open]:ring-1 data-[state=open]:ring-[var(--pink-strong)] data-[state=open]:ring-offset-0.2">
+                                                <SelectTrigger className="w-full border-[var(--border-input)] px-4 text-sm text-gray-700 bg-white transition-colors duração-200 ease-in-out focus:outline-none focus:border-[var(--pink-strong)] focus:ring-1 focus:ring-[var(--pink-strong)] focus:ring-offset-0.2 data-[state=open]:border-[var(--pink-strong)] data-[state=open]:ring-1 data-[state=open]:ring-[var(--pink-strong)] data-[state=open]:ring-offset-0.2">
                                                     <SelectValue placeholder="Gênero" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="male">Masculino</SelectItem>
-                                                    <SelectItem value="female">Feminino</SelectItem>
-                                                    <SelectItem value="other">Outro</SelectItem>
+                                                    <SelectItem value="Masculino">Masculino</SelectItem>
+                                                    <SelectItem value="Feminino">Feminino</SelectItem>
+                                                    <SelectItem value="Outro">Outro</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className='m-2'>
-                                            <Textarea className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out" placeholder="Sobre você" onChange={(e) => setAbout(e.target.value)} />
+                                            <Textarea
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
+                                                placeholder="Sobre você"
+                                                onChange={(e) => setAbout(e.target.value)} />
                                         </div>
                                         <div className="m-2 flex gap-2 mt-4 flex-col">
                                             <h2 className='text-[14.5px] text-gray-700'>Interesses</h2>
@@ -171,7 +229,7 @@ export default function Cadastre() {
                                                         key={label}
                                                         type="button"
                                                         onClick={() => setSelected(label)}
-                                                        className={`py-2 px-3 rounded-3xl border transition-colors duration-200 text-sm border-[var(--gray)] ${selected === label ? "bg-[#bdbdbd] text-[#000]" : "bg-transparent text-black hover:bg-[var(--pink-strong)]/10"}`}
+                                                        className={`py-2 px-3 rounded-3xl border transition-colors duração-200 text-sm border-[var(--gray)] ${selected === label ? "bg-[#bdbdbd] text-[#000]" : "bg-transparent text-black hover:bg-[var(--pink-strong)]/10"}`}
                                                     >
                                                         {label}
                                                     </button>
@@ -189,7 +247,7 @@ export default function Cadastre() {
                                             accept="image/*"
                                             multiple
                                             onChange={handleFileChange}
-                                            className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[var(--pink-strong)] file:text-white hover:file:bg-pink-700 cursor-pointer border border-[var(--border-input)] rounded-md focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-[0.2rem] focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                                            className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[var(--pink-strong)] file:text-white hover:file:bg-pink-700 cursor-pointer border border-[var(--border-input)] rounded-md focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-[0.2rem] focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                         />
                                         {photos.length > 0 && (
                                             <div className="flex gap-2 mt-4 flex-wrap">
@@ -212,7 +270,7 @@ export default function Cadastre() {
                                                 placeholder="E-mail"
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                             />
                                         </div>
                                         <div className="m-2">
@@ -221,7 +279,7 @@ export default function Cadastre() {
                                                 placeholder="Senha"
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                             />
                                         </div>
                                         <div className="m-2">
@@ -230,7 +288,7 @@ export default function Cadastre() {
                                                 placeholder="Confirmar Senha"
                                                 value={formData.confirmPassword}
                                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                             />
                                         </div>
                                     </>
