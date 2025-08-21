@@ -9,7 +9,7 @@ export default function BackHeader({ title }: BackHeaderProps) {
                 <IoIosArrowBack size={22} color="#000" />
             </button>
 
-            <h2 className="text-2xl text-amber-50 font-semibold text-center">
+            <h2 className=" text-[19px] lg:text-2xl text-amber-50 font-semibold text-center">
                 {title}
             </h2>
             <div></div>

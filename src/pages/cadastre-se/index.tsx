@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 import logo from '../../../public/spotme_logo.png'
 import Button from '@/components/Button'
 import Image from 'next/image'
-import { GoHeart } from "react-icons/go";
-import { IoPeopleOutline } from "react-icons/io5";
+import { GoHeart } from "react-icons/go"
+import { IoPeopleOutline } from "react-icons/io5"
 import { Input } from '@/components/ui/input'
 import { formatDate } from '@/helpers/formatDate'
 import { Textarea } from "@/components/ui/textarea"
@@ -16,11 +16,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import toast from "react-hot-toast"
+import axios from 'axios'
+import { toBase64 } from '@/helpers/formatImage'
 
 export default function Cadastre() {
     const [step, setStep] = useState(1)
     const [birthdate, setBirthdate] = useState("")
     const [selected, setSelected] = useState<string | null>(null)
+    const [about, setAbout] = useState("")
+    const [gender, setGender] = useState("")
     const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([])
     const [formData, setFormData] = useState({
         name: '',
@@ -33,15 +38,13 @@ export default function Cadastre() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newFiles = Array.from(e.target.files || [])
         if (photos.length + newFiles.length > 3) {
-            alert("Você só pode enviar até 3 fotos.")
+            toast.error('Você só pode enviar até 3 fotos.')
             return
         }
-
         const filesWithPreview = newFiles.map(file => ({
             file,
             preview: URL.createObjectURL(file)
         }))
-
         setPhotos(prev => [...prev, ...filesWithPreview])
     }
 
@@ -49,15 +52,44 @@ export default function Cadastre() {
         setPhotos(prev => prev.filter((_, i) => i !== index))
     }
 
-    const handleSubmit = () => {
-        const payload = {
-            ...formData,
-            birthdate,
-            interests: selected,
-            photos
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault()
+
+        if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword || !formData.phone || !birthdate || !gender || !selected || photos.length === 0) {
+            toast.error("Preencha todos os campos obrigatórios.")
+            return
         }
-        console.log("Payload:", payload)
-        alert("Cadastro simulado com sucesso!")
+
+        if (formData.password !== formData.confirmPassword) {
+            toast.error("As senhas não coincidem.")
+            return
+        }
+
+        try {
+            const base64Photos = await Promise.all(
+                photos.map(({ file }) => toBase64(file))
+            )
+
+            const payload = {
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                confirmPassword: formData.confirmPassword,
+                phone: formData.phone,
+                birthdate,
+                gender,
+                interests: selected,
+                about,
+                photos: base64Photos.map(preview => ({ preview }))
+            }
+
+            const response = await axios.post('/api/register', payload)
+            console.log('✅ Cadastro feito:', response.data.message)
+            alert('Cadastro realizado com sucesso!')
+        } catch (err: any) {
+            console.error('❌ Erro ao cadastrar:', err.response?.data || err.message)
+            alert(err.response?.data?.message || 'Erro ao cadastrar.')
+        }
     }
 
     return (
@@ -65,8 +97,9 @@ export default function Cadastre() {
             <BackHeader title='Cadastre-se' />
             <Container>
                 <div className='lg:flex lg:justify-center lg:h-200 lg:items-center h-174 flex justify-center items-center'>
-                    <form className='w-100'>
+                    <form className='w-100' onSubmit={handleSubmit}>
                         <div className='flex flex-col'>
+
                             {/* LOGO + TÍTULO */}
                             <div className='flex flex-col items-center justify-center gap-0.5'>
                                 <Image src={logo} alt='SpotMe' className='w-35 h-35 lg:w-60 lg:h-60' />
@@ -91,38 +124,33 @@ export default function Cadastre() {
                                     <>
                                         <div className='m-2'>
                                             <Input
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
                                                 type="text"
                                                 placeholder="Nome e Sobrenome"
                                                 value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
-                                            />
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                                         </div>
                                         <div className='m-2'>
                                             <Input
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
                                                 type="text"
                                                 placeholder="Telefone/WhatsApp"
                                                 value={formData.phone}
-                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
-                                            />
+                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
                                         </div>
                                         <div className='m-2'>
-                                            <Input
+                                            <Input className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
                                                 type="text"
                                                 placeholder="Data de Nascimento"
-                                                maxLength={10}
-                                                value={birthdate}
-                                                onChange={(e) => setBirthdate(formatDate(e.target.value))}
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
-                                            />
+                                                maxLength={10} value={birthdate}
+                                                onChange={(e) => setBirthdate(formatDate(e.target.value))} />
                                         </div>
                                         <div className="m-2">
-                                            <Select onValueChange={(value) => setSelected(value)}>
+                                            <Select onValueChange={(value) => setGender(value)} value={gender}>
                                                 <SelectTrigger className="w-full border-[var(--border-input)] px-4 text-sm text-gray-700 bg-white transition-colors duration-200 ease-in-out focus:outline-none focus:border-[var(--pink-strong)] focus:ring-1 focus:ring-[var(--pink-strong)] focus:ring-offset-0.2 data-[state=open]:border-[var(--pink-strong)] data-[state=open]:ring-1 data-[state=open]:ring-[var(--pink-strong)] data-[state=open]:ring-offset-0.2">
                                                     <SelectValue placeholder="Gênero" />
                                                 </SelectTrigger>
-                                                <SelectContent className="z-50 rounded-lg border border-[var(--border-input)] bg-white shadow-md">
+                                                <SelectContent>
                                                     <SelectItem value="male">Masculino</SelectItem>
                                                     <SelectItem value="female">Feminino</SelectItem>
                                                     <SelectItem value="other">Outro</SelectItem>
@@ -130,7 +158,7 @@ export default function Cadastre() {
                                             </Select>
                                         </div>
                                         <div className='m-2'>
-                                            <Textarea placeholder="Sobre você" className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out" />
+                                            <Textarea className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out" placeholder="Sobre você" onChange={(e) => setAbout(e.target.value)} />
                                         </div>
                                         <div className="m-2 flex gap-2 mt-4 flex-col">
                                             <h2 className='text-[14.5px] text-gray-700'>Interesses</h2>
@@ -165,11 +193,7 @@ export default function Cadastre() {
                                                 {photos.map((item, i) => (
                                                     <div key={i} className="relative w-[100px] h-[100px] border rounded overflow-hidden">
                                                         <img src={item.preview} alt={`preview-${i}`} className="object-cover w-full h-full" />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRemovePhoto(i)}
-                                                            className="absolute top-1 right-1 text-white bg-black/50 rounded-full w-5 h-5 text-xs flex items-center justify-center"
-                                                        >✕</button>
+                                                        <button type="button" onClick={() => handleRemovePhoto(i)} className="absolute top-1 right-1 text-white bg-black/50 rounded-full w-5 h-5 text-xs flex items-center justify-center">✕</button>
                                                     </div>
                                                 ))}
                                             </div>
@@ -214,7 +238,7 @@ export default function Cadastre() {
                                     {step > 1 && <Button className='py-2 px-5' title="Voltar" onClick={() => setStep(step - 1)} />}
                                     {step < 3
                                         ? <Button className={`py-2 px-5 ${step === 1 ? 'w-full' : ''}`} title="Continuar" onClick={() => setStep(step + 1)} />
-                                        : <Button className='py-2 px-5' title="Finalizar Cadastro" onClick={handleSubmit} />}
+                                        : <Button className='py-2 px-5' title="Finalizar Cadastro" type="submit" />}
                                 </div>
                             </div>
                         </div>
