@@ -23,6 +23,7 @@ import { toBase64 } from '@/helpers/formatImage'
 export default function Cadastre() {
     const [step, setStep] = useState(1)
     const [birthdate, setBirthdate] = useState("")
+    const [loading, setLoading] = useState(false)
     const [selected, setSelected] = useState<string | null>(null)
     const [about, setAbout] = useState("")
     const [gender, setGender] = useState("")
@@ -66,6 +67,7 @@ export default function Cadastre() {
         }
 
         try {
+            setLoading(true)
             const base64Photos = await Promise.all(
                 photos.map(({ file }) => toBase64(file))
             )
@@ -85,7 +87,8 @@ export default function Cadastre() {
 
             const response = await axios.post('/api/register', payload)
             console.log('✅ Cadastro feito:', response.data.message)
-            alert('Cadastro realizado com sucesso!')
+            toast.success('Cadastro finalizado!!')
+            setLoading(false)
         } catch (err: any) {
             console.error('❌ Erro ao cadastrar:', err.response?.data || err.message)
             alert(err.response?.data?.message || 'Erro ao cadastrar.')
@@ -238,7 +241,7 @@ export default function Cadastre() {
                                     {step > 1 && <Button className='py-2 px-5' title="Voltar" onClick={() => setStep(step - 1)} />}
                                     {step < 3
                                         ? <Button className={`py-2 px-5 ${step === 1 ? 'w-full' : ''}`} title="Continuar" onClick={() => setStep(step + 1)} />
-                                        : <Button className='py-2 px-5' title="Finalizar Cadastro" type="submit" />}
+                                        : <Button loading={loading} className='py-2 px-5' title="Finalizar Cadastro" type="submit" />}
                                 </div>
                             </div>
                         </div>
