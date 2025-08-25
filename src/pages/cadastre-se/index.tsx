@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/select"
 import toast from "react-hot-toast"
 import axios from 'axios'
+import { formatPhone } from '@/helpers/formatPhone'
+import Router, { useRouter } from 'next/router'
 
 export default function Cadastre() {
     const [step, setStep] = useState(1)
@@ -28,6 +30,8 @@ export default function Cadastre() {
     const [gender, setGender] = useState("")
     const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([])
     const [photoURLs, setPhotoURLs] = useState<string[]>([])
+
+    const router = useRouter();
 
     const [formData, setFormData] = useState({
         name: '',
@@ -139,6 +143,7 @@ export default function Cadastre() {
             const response = await axios.post('/api/register', payload)
             console.log('✅ Cadastro feito:', response.data.message)
             toast.success('Cadastro finalizado!!')
+            router.push('/dashboard')
             setLoading(false)
         } catch (err: any) {
             console.error('❌ Erro ao cadastrar:', err?.response?.data || err?.message || err)
@@ -179,7 +184,7 @@ export default function Cadastre() {
                                     <>
                                         <div className='m-2'>
                                             <Input
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
+                                                className="bg-[var(--white)] text-[13px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                                 type="text"
                                                 placeholder="Nome e Sobrenome"
                                                 value={formData.name}
@@ -190,7 +195,7 @@ export default function Cadastre() {
                                                 className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                                 type="text"
                                                 placeholder="Telefone/WhatsApp"
-                                                value={formData.phone}
+                                                value={formatPhone(formData.phone)}
                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
                                         </div>
                                         <div className='m-2'>
@@ -249,7 +254,7 @@ export default function Cadastre() {
                                             className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[var(--pink-strong)] file:text-white hover:file:bg-pink-700 cursor-pointer border border-[var(--border-input)] rounded-md focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-[0.2rem] focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                         />
                                         {photos.length > 0 && (
-                                            <div className="flex gap-2 mt-4 flex-wrap">
+                                            <div className="flex gap-2 mt-4 flex-wrap justify-between">
                                                 {photos.map((item, i) => (
                                                     <div key={i} className="relative w-[100px] h-[100px] border rounded overflow-hidden">
                                                         <img src={item.preview} alt={`preview-${i}`} className="object-cover w-full h-full" />
