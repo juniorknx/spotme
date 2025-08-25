@@ -143,7 +143,7 @@ export default function Cadastre() {
             const response = await axios.post('/api/register', payload)
             console.log('✅ Cadastro feito:', response.data.message)
             toast.success('Cadastro finalizado!!')
-            router.push('/dashboard')
+            router.push('/login')
             setLoading(false)
         } catch (err: any) {
             console.error('❌ Erro ao cadastrar:', err?.response?.data || err?.message || err)
