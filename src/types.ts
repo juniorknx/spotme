@@ -18,3 +18,16 @@ export interface ContainerProps {
 export interface BackHeaderProps {
     title: string;
 }
+
+export type SignUpFormData = {
+    name: string
+    phone: string
+    birthdate: string
+    gender: string
+    about: string
+    interests: string
+    email: string
+    password: string
+    confirmPassword: string
+    photos: File[]
+}
