@@ -1,3 +1,4 @@
+// context/AuthContext.tsx
 import {
     createContext,
     useContext,
@@ -5,33 +6,35 @@ import {
     useState,
     ReactNode,
 } from 'react';
-import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
+import {
+    onAuthStateChanged,
+    signOut,
+    User as FirebaseUser,
+} from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/services/firebaseConfig';
 
-type CustomUser = FirebaseUser & {
-    about?: string;                  // "Software Engineer and Indie Hacker"
-    birthdate?: string;              // "02/03/1994"
-    createdAt?: any;                 // Timestamp
-    displayName?: string;            // "Julio Junior" (pode vir também do FirebaseUser)
-    email?: string;                  // "juliodev220@gmail.com" (tbm no FirebaseUser)
-    gallery?: string[];              // array de URLs
-    gender?: string;                 // "Masculino"
-    interests?: string | string[];   // pode ser string no seu dado atual
-    isActive?: boolean;              // true
-    isPremium?: boolean;             // false
-    lastSeenAt?: any;                // Timestamp
-    phone?: string;                  // "(51) 99250-0741"
-    photoURL?: string;               // URL
-    placeId?: string | null;         // null
-    placeName?: string | null;       // null
-    premiumUntil?: any;              // Timestamp | null
-    uid?: string;                    // já vem do FirebaseUser
-    updatedAt?: any;                 // Timestamp
+type SpotMeUser = FirebaseUser & {
+    displayName: string;
+    age: number;
+    photoURL: string;
+    isActive: boolean;
+    isPremium: boolean;
+    premiumUntil: string | null;
+    placeId: string;
+    placeName: string;
+    lastSeenAt: any;
+    createdAt: any;
+    updatedAt: any;
+    // Pode adicionar outros campos conforme `users/{uid}/profile/main`
+    gender?: string;
+    interests?: string[];
+    description?: string;
+    phone?: string;
 };
 
 interface AuthContextProps {
-    user: CustomUser | null;
+    user: SpotMeUser | null;
     loading: boolean;
     logout: () => void;
 }
@@ -47,31 +50,29 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-    const [user, setUser] = useState<CustomUser | null>(null);
+    const [user, setUser] = useState<SpotMeUser | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            try {
-                if (firebaseUser) {
-                    const token = await firebaseUser.getIdToken();
-                    if (typeof window !== 'undefined') {
-                        localStorage.setItem('token', token);
-                    }
+            if (firebaseUser) {
+                const token = await firebaseUser.getIdToken();
+                localStorage.setItem('token', token);
 
-                    const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
-                    const userData = snap.exists() ? (snap.data() as Partial<CustomUser>) : {};
+                // Busca do subdocumento profile/main
+                const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+                const userData = userDoc.exists() ? userDoc.data() : {};
 
-                    setUser({ ...firebaseUser, ...userData } as CustomUser);
-                } else {
-                    if (typeof window !== 'undefined') {
-                        localStorage.removeItem('token');
-                    }
-                    setUser(null);
-                }
-            } finally {
-                setLoading(false);
+                setUser({
+                    ...firebaseUser,
+                    ...userData,
+                } as SpotMeUser);
+            } else {
+                localStorage.removeItem('token');
+                setUser(null);
             }
+
+            setLoading(false);
         });
 
         return () => unsubscribe();
@@ -79,9 +80,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const logout = async () => {
         await signOut(auth);
-        if (typeof window !== 'undefined') {
-            localStorage.removeItem('token');
-        }
+        localStorage.removeItem('token');
         setUser(null);
     };
 
