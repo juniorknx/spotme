@@ -8,6 +8,7 @@ import { GoHeart } from "react-icons/go"
 import { IoPeopleOutline, IoEye, IoEyeOff } from "react-icons/io5"
 import { Input } from '@/components/ui/input'
 import { formatDate } from '@/helpers/formatDate'
+import { getPasswordStrength } from '@/helpers/getPasswordStrength'
 import { Textarea } from "@/components/ui/textarea"
 import {
     Select,
@@ -43,6 +44,7 @@ export default function Cadastre() {
 
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [passwordStrength, setPasswordStrength] = useState<'Fraca' | 'Média' | 'Forte' | ''>('')
 
     // Somente cria um preview local
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,6 +124,11 @@ export default function Cadastre() {
 
         if (formData.password !== formData.confirmPassword) {
             toast.error("As senhas não coincidem.")
+            return
+        }
+
+        if (passwordStrength === 'Fraca') {
+            toast.error('Senha muito fraca.')
             return
         }
 
@@ -297,7 +304,11 @@ export default function Cadastre() {
                                                 type={showPassword ? "text" : "password"}
                                                 placeholder="Senha"
                                                 value={formData.password}
-                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                onChange={(e) => {
+                                                    const value = e.target.value
+                                                    setFormData({ ...formData, password: value })
+                                                    setPasswordStrength(getPasswordStrength(value))
+                                                }}
                                                 className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out pr-10"
                                             />
                                             <button
@@ -307,6 +318,19 @@ export default function Cadastre() {
                                             >
                                                 {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
                                             </button>
+                                            {passwordStrength && (
+                                                <p
+                                                    className={`text-xs mt-1 ${
+                                                        passwordStrength === 'Fraca'
+                                                            ? 'text-red-500'
+                                                            : passwordStrength === 'Média'
+                                                                ? 'text-yellow-500'
+                                                                : 'text-green-500'
+                                                    }`}
+                                                >
+                                                    Senha {passwordStrength}
+                                                </p>
+                                            )}
                                         </div>
                                         <div className="m-2 relative">
                                             <Input
