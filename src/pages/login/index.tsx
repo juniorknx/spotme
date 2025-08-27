@@ -1,13 +1,13 @@
 import BackHeader from '@/components/BackHeader'
 import Container from '@/components/Container'
-import React, { FormEvent, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import Button from '@/components/Button'
 import Link from 'next/link'
 import Image from 'next/image'
 import logo from '../../../public/spotme_logo.png'
 import { GoHeart } from "react-icons/go";
-import { IoPeopleOutline } from "react-icons/io5";
+import { IoPeopleOutline, IoEye, IoEyeOff } from "react-icons/io5";
 import { auth } from '@/services/firebaseConfig'
 import { browserLocalPersistence, setPersistence, signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from 'next/router'
@@ -18,16 +18,17 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const { user } = useAuth()
+  const router = useRouter();
 
   useEffect(() => {
     if (!loading && user) {
       router.push('/dashboard');
     }
-  }, [loading, user]);
+  }, [loading, user, router]);
 
-  const router = useRouter();
 
   async function handleLogin() {
     setLoading(true);
@@ -41,8 +42,9 @@ export default function Login() {
       localStorage.setItem('token', token);
       await router.push('/dashboard');
       toast.success('Bem-vindo!', { id: toastEntering })
-    } catch (error: any) {
-      console.error('Erro ao logar:', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      console.error('Erro ao logar:', message);
       toast.error('E-mail ou senha inválidos', { id: toastEntering })
 
     } finally {
@@ -92,13 +94,20 @@ export default function Login() {
                   />
                 </div>
 
-                <div className='m-2'>
+                <div className='m-2 relative'>
                   <Input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Senha"
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out"
+                    className="h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duration-200 ease-in-out pr-10"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+                  </button>
                 </div>
 
                 <div className='flex justify-center mt-3'>
