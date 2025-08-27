@@ -3,6 +3,7 @@ import Container from '@/components/Container'
 import React, { useState } from 'react'
 import logo from '../../../public/spotme_logo.png'
 import Button from '@/components/Button'
+import ProgressSteps from '@/components/ProgressSteps'
 import Image from 'next/image'
 import { GoHeart } from "react-icons/go"
 import { IoPeopleOutline, IoEye, IoEyeOff } from "react-icons/io5"
@@ -194,6 +195,7 @@ export default function Cadastre() {
                             </div>
 
                             {/* FORM STEPS */}
+                            <ProgressSteps step={step} />
                             <div className='mt-5'>
                                 {step === 1 && (
                                     <>
