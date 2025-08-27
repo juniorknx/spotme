@@ -34,13 +34,13 @@ export default function Button({
             )}
         >
             {/* Spinner à ESQUERDA */}
-            {loading && spinnerPosition === "left" && <Spinner />}
+            {loading && spinnerPosition === "left" && <Spinner size="small" />}
 
             {/* Label (se o spinner for central, mantemos layout estável) */}
             <span className={clsx(isCentered && loading && "opacity-0")}>{title}</span>
 
             {/* Spinner à DIREITA */}
-            {loading && spinnerPosition === "right" && <Spinner />}
+            {loading && spinnerPosition === "right" && <Spinner size="small" />}
 
             {/* Spinner ao CENTRO (overlay, não desloca layout) */}
             {loading && isCentered && (
@@ -49,7 +49,7 @@ export default function Button({
             absolute inset-0 flex items-center justify-center
           "
                 >
-                    <Spinner />
+                    <Spinner size="small" />
                 </span>
             )}
         </ShadButton>

@@ -4,7 +4,7 @@ import { useLocation } from '@/contexts/LocationContext'
 import React from 'react'
 
 export default function Dashboard() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const { location } = useLocation()
 
   console.log(location)
@@ -15,6 +15,7 @@ export default function Dashboard() {
           <h1>Dashboard</h1>
           <span>Hello {user?.displayName}</span>
           <span>Você está em: { location.latitude }</span>
+          <button onClick={logout}>sair</button>
         </div>
       </PrivateRoute>
     </>

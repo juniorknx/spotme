@@ -39,7 +39,7 @@ export default function Login() {
       const token = await userCredential.user.getIdToken();
 
       localStorage.setItem('token', token);
-      router.push('/dashboard');
+      await router.push('/dashboard');
       toast.success('Bem-vindo!', { id: toastEntering })
     } catch (error: any) {
       console.error('Erro ao logar:', error.message);
