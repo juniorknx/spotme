@@ -21,6 +21,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
 
   const { user } = useAuth()
+  const router = useRouter();
 
   useEffect(() => {
     if (!loading && user) {
@@ -28,7 +29,6 @@ export default function Login() {
     }
   }, [loading, user, router]);
 
-  const router = useRouter();
 
   async function handleLogin() {
     setLoading(true);
