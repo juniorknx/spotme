@@ -19,7 +19,8 @@ import {
 import toast from "react-hot-toast"
 import axios from 'axios'
 import { formatPhone } from '@/helpers/formatPhone'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
+import { validateStep } from './validateStep'
 
 export default function Cadastre() {
     const [step, setStep] = useState(1)
@@ -29,7 +30,6 @@ export default function Cadastre() {
     const [about, setAbout] = useState("")
     const [gender, setGender] = useState("")
     const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([])
-    const [photoURLs, setPhotoURLs] = useState<string[]>([])
 
     const router = useRouter();
 
@@ -61,7 +61,12 @@ export default function Cadastre() {
 
     const handleRemovePhoto = (index: number) => {
         setPhotos(prev => prev.filter((_, i) => i !== index))
-        setPhotoURLs(prev => prev.filter((_, i) => i !== index)) 
+    }
+
+    const handleNextStep = () => {
+        if (validateStep(step, formData, birthdate, selected, photos)) {
+            setStep(step + 1)
+        }
     }
 
     // ==== Helpers chamados apenas no SUBMIT ====
@@ -126,7 +131,6 @@ export default function Cadastre() {
 
             // Aqui envia para o cloudinary
             const urls = await uploadAllSelectedPhotos(photos)
-            setPhotoURLs(urls)
 
             toast.success('Fotos enviadas!', { id: toastId })
 
@@ -148,9 +152,17 @@ export default function Cadastre() {
             toast.success('Cadastro finalizado!!')
             router.push('/login')
             setLoading(false)
-        } catch (err: any) {
-            console.error('❌ Erro ao cadastrar:', err?.response?.data || err?.message || err)
-            toast.error(err?.response?.data?.message || err?.message || 'Erro ao cadastrar.')
+        } catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+                console.error('❌ Erro ao cadastrar:', err.response?.data || err.message)
+                toast.error(err.response?.data?.message || err.message || 'Erro ao cadastrar.')
+            } else if (err instanceof Error) {
+                console.error('❌ Erro ao cadastrar:', err.message)
+                toast.error(err.message)
+            } else {
+                console.error('❌ Erro ao cadastrar:', err)
+                toast.error('Erro ao cadastrar.')
+            }
             setLoading(false)
         }
     }
@@ -317,10 +329,25 @@ export default function Cadastre() {
 
                                 {/* Navegação entre steps */}
                                 <div className='flex justify-between mt-6 mx-2 flex-wrap items-center'>
-                                    {step > 1 && <Button className='py-2 px-5' title="Voltar" onClick={() => setStep(step - 1)} />}
+                                    {step > 1 && (
+                                        <Button className='py-2 px-5' title="Voltar" onClick={() => setStep(step - 1)} />
+                                    )}
                                     {step < 3
-                                        ? <Button className={`py-2 px-5 ${step === 1 ? 'w-full' : ''}`} title="Continuar" onClick={() => setStep(step + 1)} />
-                                        : <Button loading={loading} className='py-2 px-5' title="Finalizar Cadastro" type="submit" />}
+                                        ? (
+                                            <Button
+                                                className={`py-2 px-5 ${step === 1 ? 'w-full' : ''}`}
+                                                title="Continuar"
+                                                onClick={handleNextStep}
+                                            />
+                                        )
+                                        : (
+                                            <Button
+                                                loading={loading}
+                                                className='py-2 px-5'
+                                                title="Finalizar Cadastro"
+                                                type="submit"
+                                            />
+                                        )}
                                 </div>
                             </div>
                         </div>
