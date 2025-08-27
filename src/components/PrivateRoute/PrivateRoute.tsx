@@ -7,15 +7,13 @@ export default function PrivateRoute({ children }: { children: React.ReactNode }
     const { user, loading } = useAuth();
     const router = useRouter();
 
-    console.log('FROM PRIVATE ROUTE ==> ', user)
-
     useEffect(() => {
         if (!loading && !user) {
             router.push('/');
         }
     }, [loading, user]);
 
-    if (loading || !user) return <Spinner/>;
+    if (loading || !user) return <Spinner fullScreen color="#5A007A" />;
 
     return <>{children}</>;
 }
