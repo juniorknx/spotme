@@ -5,7 +5,7 @@ import logo from '../../../public/spotme_logo.png'
 import Button from '@/components/Button'
 import Image from 'next/image'
 import { GoHeart } from "react-icons/go"
-import { IoPeopleOutline } from "react-icons/io5"
+import { IoPeopleOutline, IoEye, IoEyeOff } from "react-icons/io5"
 import { Input } from '@/components/ui/input'
 import { formatDate } from '@/helpers/formatDate'
 import { Textarea } from "@/components/ui/textarea"
@@ -40,6 +40,9 @@ export default function Cadastre() {
         password: '',
         confirmPassword: ''
     })
+
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     // Somente cria um preview local
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,23 +280,37 @@ export default function Cadastre() {
                                                 className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
                                             />
                                         </div>
-                                        <div className="m-2">
+                                        <div className="m-2 relative">
                                             <Input
-                                                type="password"
+                                                type={showPassword ? "text" : "password"}
                                                 placeholder="Senha"
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out pr-10"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                                            >
+                                                {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+                                            </button>
                                         </div>
-                                        <div className="m-2">
+                                        <div className="m-2 relative">
                                             <Input
-                                                type="password"
+                                                type={showConfirmPassword ? "text" : "password"}
                                                 placeholder="Confirmar Senha"
                                                 value={formData.confirmPassword}
                                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out"
+                                                className="bg-[var(--white)] text-[14.5px] h-12 border border-[var(--border-input)] focus-visible:ring-1 focus-visible:ring-[var(--pink-strong)] focus-visible:ring-offset-0.2 focus-visible:border-[var(--pink-strong)] transition-colors duração-200 ease-in-out pr-10"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                                            >
+                                                {showConfirmPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+                                            </button>
                                         </div>
                                     </>
                                 )}
