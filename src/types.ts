@@ -17,6 +17,7 @@ export interface ContainerProps {
 
 export interface BackHeaderProps {
     title: string;
+    fallbackHref?: string;
 }
 
 export type SignUpFormData = {
